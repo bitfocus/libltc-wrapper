@@ -5,7 +5,11 @@ assert(ltcwrapper, "The expected function is undefined");
 
 function testBasic()
 {
-    const result = new ltcwrapper();
+    const result = new ltcwrapper({
+        apv: 1920,
+        queueSize: 32,
+        audioFormat: "kake"
+    });
     //assert.strictEqual(result, "world", "Unexpected value returned");
 
 }

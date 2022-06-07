@@ -40,6 +40,13 @@
     napi_throw_error(env, NULL, error); \
     return NULL;
 
+enum ltc_soundformat {
+  LTC_SOUND_FORMAT_U8 = 0,
+  LTC_SOUND_FORMAT_S16 = 1,
+  LTC_SOUND_FORMAT_U16 = 2,
+  LTC_SOUND_FORMAT_FL = 3,
+};
+
 struct ltcobject {
   napi_env env;
   napi_deferred read_deferred;
@@ -47,7 +54,9 @@ struct ltcobject {
   napi_async_work read_work;
   napi_async_work write_work;
   LTCDecoder *decoder;
-  
+  int32_t apv;
+  int32_t queue_size;
+  enum ltc_soundformat sound_format;
 };
 
 #endif
