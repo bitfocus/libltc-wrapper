@@ -1,0 +1,15 @@
+{
+	"files.associations": {
+		"node_api.h": "c",
+		"functional": "c",
+		"typeinfo": "c",
+		"*.tcc": "c",
+		"algorithm": "c",
+		"system_error": "cpp",
+		"cerrno": "c",
+		"compare": "cpp",
+		"ostream": "cpp",
+		"streambuf": "cpp",
+		"type_traits": "cpp"
+	}
+}

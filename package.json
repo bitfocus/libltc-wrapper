@@ -1,0 +1,20 @@
+{
+    "main": "dist/binding.js",
+    "scripts": {
+        "pretest": "tsc",
+        "test": "node --napi-modules ./test/test_binding.js"
+    },
+    "gypfile": true,
+    "name": "ltc-wrapper",
+    "version": "1.0.2",
+    "description": "libltc wrapper for node.js",
+    "directories": {
+        "lib": "lib"
+    },
+    "author": "Håkon Nessjøen <haakon@bitfocus.io>",
+    "license": "MIT",
+    "devDependencies": {
+        "@types/node": "^7.10.14",
+        "typescript": "^3.9.10"
+    }
+}
