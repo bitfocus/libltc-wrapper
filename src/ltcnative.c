@@ -10,13 +10,14 @@
 #include <js_native_api.h>
 #include "ltcnative.h"
 
-void destroyLtcObject(napi_env env, void *data, void *hint)
+void destroy_ltc_object(napi_env env, void *data, void *hint)
 {
 	struct ltcobject *obj = (struct ltcobject *)data;
 
 	if (obj->decoder != NULL)
 	{
 		ltc_decoder_free(obj->decoder);
+		obj->decoder = NULL;
 	}
 
 	free(obj);
@@ -88,16 +89,16 @@ static napi_value create_ltc_object(napi_env env, napi_callback_info info)
 		NAPI_ERROR_RETURN("Failed to get string")
 	}
 
-	if (strncmp(format, "u8", format_len)) {
+	if (strncmp(format, "u8", format_len) == 0) {
 		obj->sound_format = LTC_SOUND_FORMAT_U8;
 	}
-	else if (strncmp(format, "s16", format_len)) {
+	else if (strncmp(format, "s16", format_len) == 0) {
 		obj->sound_format = LTC_SOUND_FORMAT_S16;
 	}
-	else if (strncmp(format, "u16", format_len)) {
+	else if (strncmp(format, "u16", format_len) == 0) {
 		obj->sound_format = LTC_SOUND_FORMAT_U16;
 	}
-	else if (strncmp(format, "float", format_len)) {
+	else if (strncmp(format, "float", format_len) == 0) {
 		obj->sound_format = LTC_SOUND_FORMAT_FL;
 	}
 	else {
@@ -113,19 +114,159 @@ static napi_value create_ltc_object(napi_env env, napi_callback_info info)
 		NAPI_ERROR_RETURN("Failed to create decoder");
 	}
 
-	status = napi_create_external(env, obj, destroyLtcObject, NULL, &result);
+	status = napi_create_external(env, obj, destroy_ltc_object, NULL, &result);
 	NAPI_STATUS_RETURN("Failed to create external");
 
 	return result;
+}
+
+static napi_value write_audio(napi_env env, napi_callback_info info)
+{
+	napi_status status;
+	struct ltcobject *obj;
+
+	size_t argc = 2;
+	napi_value args[2];
+	napi_valuetype type;
+
+	status = napi_get_cb_info(env, info, &argc, args, NULL, NULL);
+	NAPI_STATUS_RETURN("Failed to parse arguments")
+
+	if (argc < 2) {
+		NAPI_ERROR_RETURN("Wrong number of arguments");
+	}
+
+	status = napi_typeof(env, args[0], &type);
+	NAPI_STATUS_RETURN("Error fetching type of argument 1");
+
+	if (type != napi_external) {
+		NAPI_ERROR_RETURN("Expected argument 1 to be an external");
+	}
+
+	bool is_buffer;
+	status = napi_is_buffer(env, args[1], &is_buffer);
+	NAPI_STATUS_RETURN("Error fetching type of argument 2");
+
+	if (!is_buffer) {
+		NAPI_ERROR_RETURN("Expected argument 2 to be a buffer");
+	}
+
+	status = napi_get_value_external(env, args[0], (void **)&obj);
+	NAPI_STATUS_RETURN("Failed to get external");
+
+	uint8_t *buffer_data;
+	size_t buffer_size;
+	
+	napi_get_buffer_info(env, args[1], (void **)&buffer_data, &buffer_size);
+
+	switch (obj->sound_format) {
+		case LTC_SOUND_FORMAT_U8:
+			ltc_decoder_write(obj->decoder, (ltcsnd_sample_t *)buffer_data, buffer_size, obj->position);
+			obj->position += buffer_size;
+			break;
+		case LTC_SOUND_FORMAT_U16:
+			if (buffer_size % 2 != 0) {
+				NAPI_ERROR_RETURN("Buffer size must be a multiple of 2");
+			}
+
+			ltc_decoder_write_u16(obj->decoder, (unsigned short *)buffer_data, buffer_size / 2, obj->position);
+			obj->position += buffer_size / 2;
+			break;
+		case LTC_SOUND_FORMAT_S16:
+			if (buffer_size % 2 != 0) {
+				NAPI_ERROR_RETURN("Buffer size must be a multiple of 2");
+			}
+
+			ltc_decoder_write_s16(obj->decoder, (short *)buffer_data, buffer_size / 2, obj->position);
+			obj->position += buffer_size / 2;
+			break;
+		case LTC_SOUND_FORMAT_FL:
+			if (buffer_size % 4 != 0) {
+				NAPI_ERROR_RETURN("Buffer size must be a multiple of 4");
+			}
+
+			ltc_decoder_write_float(obj->decoder, (float *)buffer_data, buffer_size / 4, obj->position);
+			obj->position += buffer_size / 4;
+			break;
+		default:
+			NAPI_ERROR_RETURN("Invalid sound format");
+	}
+
+	napi_value undefined;
+	status = napi_get_undefined(env, &undefined);
+	NAPI_STATUS_RETURN("Failed to get undefined")
+
+	return undefined;
+}
+
+static napi_value read_frame(napi_env env, napi_callback_info info)
+{
+	napi_status status;
+	struct ltcobject *obj;
+
+	size_t argc = 1;
+	napi_value args[1];
+	napi_valuetype type;
+
+	status = napi_get_cb_info(env, info, &argc, args, NULL, NULL);
+	NAPI_STATUS_RETURN("Failed to parse arguments")
+
+	if (argc < 1) {
+		NAPI_ERROR_RETURN("Wrong number of arguments");
+	}
+
+	status = napi_typeof(env, args[0], &type);
+	NAPI_STATUS_RETURN("Error fetching type of argument 1");
+
+	if (type != napi_external) {
+		NAPI_ERROR_RETURN("Expected argument 1 to be an external");
+	}
+
+	status = napi_get_value_external(env, args[0], (void **)&obj);
+	NAPI_STATUS_RETURN("Failed to get external");
+
+	int result = ltc_decoder_read(obj->decoder, &obj->frame);
+
+	if (result == 0) {
+		// No frames yet
+		napi_value undefined;
+		status = napi_get_undefined(env, &undefined);
+		NAPI_STATUS_RETURN("Failed to get undefined")
+		printf("No data at pos %lld\n", obj->position);
+
+		return undefined;
+	} else {
+		// Return frame
+		SMPTETimecode stime;
+		ltc_frame_to_time(&stime, &obj->frame.ltc, 1);
+
+		printf("%04d-%02d-%02d %s\n",
+				((stime.years < 67) ? 2000+stime.years : 1900+stime.years),
+				stime.months,
+				stime.days,
+				stime.timezone
+				);
+
+		return NULL;
+	}
 }
 
 napi_value Init(napi_env env, napi_value exports)
 {
 
 	napi_value create_ltc_object_function;
+	napi_value write_audio_function;
+	napi_value read_frame_function;
 
 	NAPI_CALL(env, napi_create_function(env, "createLTCObject", NAPI_AUTO_LENGTH, create_ltc_object, NULL, &create_ltc_object_function));
 	NAPI_CALL(env, napi_set_named_property(env, exports, "createLTCObject", create_ltc_object_function));
+
+	NAPI_CALL(env, napi_create_function(env, "writeAudio", NAPI_AUTO_LENGTH, write_audio, NULL, &write_audio_function));
+	NAPI_CALL(env, napi_set_named_property(env, exports, "writeAudio", write_audio_function));
+
+
+	NAPI_CALL(env, napi_create_function(env, "readFrame", NAPI_AUTO_LENGTH, read_frame, NULL, &read_frame_function));
+	NAPI_CALL(env, napi_set_named_property(env, exports, "readFrame", read_frame_function));
 
 	return exports;
 }

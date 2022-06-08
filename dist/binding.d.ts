@@ -1,6 +1,5 @@
 /// <reference types="node" />
-import { Duplex } from "stream";
-export default class ltcwrapper extends Duplex {
+export default class ltcwrapper {
     apv: number;
     queueSize: number;
     audioFormat: 'u8' | 'u16' | 's16' | 'float';
@@ -10,4 +9,6 @@ export default class ltcwrapper extends Duplex {
         queueSize: number;
         audioFormat: 'u8' | 'u16' | 's16' | 'float';
     });
+    write(buffer: Buffer): any;
+    read(): any;
 }

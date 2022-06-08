@@ -1,7 +1,7 @@
 import { Duplex, DuplexOptions } from "stream";
 const addon = require('../build/Release/ltc-native');
 
-export default class ltcwrapper extends Duplex {
+export default class ltcwrapper {
 	apv: number;
 	queueSize: number;
 	audioFormat: 'u8' | 'u16' | 's16' | 'float';
@@ -9,8 +9,6 @@ export default class ltcwrapper extends Duplex {
 
 
 	constructor(opts: { apv: number, queueSize: number, audioFormat: 'u8' | 'u16' | 's16' | 'float' }) {
-		super();
-
 		this.apv = opts.apv;
 		this.queueSize = opts.queueSize;
 		this.audioFormat = opts.audioFormat;
@@ -18,5 +16,12 @@ export default class ltcwrapper extends Duplex {
 		this.obj = addon.createLTCObject(this.apv, this.queueSize, this.audioFormat);
 	}
 
+	write(buffer: Buffer) {
+		return addon.writeAudio(this.obj, buffer);
+	}
+
+	read() {
+		return addon.readFrame(this.obj);
+	}
 }
 
