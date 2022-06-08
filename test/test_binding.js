@@ -10,7 +10,8 @@ function testBasic()
     const result = new ltcwrapper({
         apv: 1920,
         queueSize: 32,
-        audioFormat: "u8"
+        audioFormat: "u8",
+        framerate: 30
     });
     //assert.strictEqual(result, "world", "Unexpected value returned");
 
@@ -19,6 +20,7 @@ function testBasic()
     assert.strictEqual(wrote, undefined, "Should have returned undefined");
 
     let frame = result.read();
+    console.log("Frame: ", frame);
 }
 
 assert.doesNotThrow(testBasic, undefined, "testBasic threw an expection");

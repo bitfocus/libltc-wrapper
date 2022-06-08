@@ -29,8 +29,8 @@ static napi_value create_ltc_object(napi_env env, napi_callback_info info)
 	napi_value result;
 	napi_status status;
 
-	size_t argc = 3;
-	napi_value args[3];
+	size_t argc = 4;
+	napi_value args[4];
 	napi_valuetype type;
 	struct ltcobject *obj;
 
@@ -62,13 +62,25 @@ static napi_value create_ltc_object(napi_env env, napi_callback_info info)
 		NAPI_ERROR_RETURN("Expected argument 3 to be a string");
 	}
 
-	obj = (struct ltcobject *)malloc(sizeof(struct ltcobject));
+	status = napi_typeof(env, args[3], &type);
+	NAPI_STATUS_RETURN("Error fetching type of argument 4");
+	if (type != napi_number) {
+		NAPI_ERROR_RETURN("Expected argument 4 to be a number");
+	}
+
+	obj = (struct ltcobject *)calloc(sizeof(struct ltcobject), 1);
 	if (obj == NULL) {
 		NAPI_ERROR_RETURN("Error allocating memory");
 	}
 
 	napi_get_value_int32(env, args[0], &obj->apv);
 	napi_get_value_int32(env, args[1], &obj->queue_size);
+	napi_get_value_int32(env, args[3], &obj->framerate);
+
+	if (obj->framerate != 25 && obj->framerate != 30) {
+		free(obj);
+		NAPI_ERROR_RETURN("Invalid framerate, must be 25 or 30");
+	}
 
 	status = napi_get_value_string_utf8(env, args[2], NULL, 0, &format_len);
 	if (status != napi_ok) {
@@ -232,7 +244,6 @@ static napi_value read_frame(napi_env env, napi_callback_info info)
 		napi_value undefined;
 		status = napi_get_undefined(env, &undefined);
 		NAPI_STATUS_RETURN("Failed to get undefined")
-		printf("No data at pos %lld\n", obj->position);
 
 		return undefined;
 	} else {
@@ -240,14 +251,65 @@ static napi_value read_frame(napi_env env, napi_callback_info info)
 		SMPTETimecode stime;
 		ltc_frame_to_time(&stime, &obj->frame.ltc, 1);
 
-		printf("%04d-%02d-%02d %s\n",
-				((stime.years < 67) ? 2000+stime.years : 1900+stime.years),
-				stime.months,
-				stime.days,
-				stime.timezone
-				);
+		napi_value result;
+		status = napi_create_object(env, &result);
 
-		return NULL;
+		napi_value ltc_df;
+		status = napi_get_boolean(env, obj->frame.ltc.dfbit != 0, &ltc_df);
+		NAPI_STATUS_RETURN("Failed to get boolean")
+		status = napi_set_named_property(env, result, "df", ltc_df);
+
+		napi_value days;
+		status = napi_create_int32(env, stime.days, &days);
+		NAPI_STATUS_RETURN("Failed to create int32")
+		status = napi_set_named_property(env, result, "days", days);
+
+		napi_value months;
+		status = napi_create_int32(env, stime.months, &months);
+		NAPI_STATUS_RETURN("Failed to create int32")
+		status = napi_set_named_property(env, result, "months", months);
+
+		napi_value years;
+		status = napi_create_int32(env, stime.years, &years);
+		NAPI_STATUS_RETURN("Failed to create int32")
+		status = napi_set_named_property(env, result, "years", years);
+
+		napi_value hours;
+		status = napi_create_int32(env, stime.hours, &hours);
+		NAPI_STATUS_RETURN("Failed to create int32")
+		status = napi_set_named_property(env, result, "hours", hours);
+
+		napi_value minutes;
+		status = napi_create_int32(env, stime.mins, &minutes);
+		NAPI_STATUS_RETURN("Failed to create int32")
+		status = napi_set_named_property(env, result, "minutes", minutes);
+
+		napi_value seconds;
+		status = napi_create_int32(env, stime.secs, &seconds);
+		NAPI_STATUS_RETURN("Failed to create int32")
+		status = napi_set_named_property(env, result, "seconds", seconds);
+
+		napi_value frames;
+		status = napi_create_int32(env, stime.frame, &frames);
+		NAPI_STATUS_RETURN("Failed to create int32")
+		status = napi_set_named_property(env, result, "frames", frames);
+
+		napi_value offset_start;
+		status = napi_create_double(env, obj->frame.off_start, &offset_start);
+		NAPI_STATUS_RETURN("Failed to create double")
+		status = napi_set_named_property(env, result, "offset_start", offset_start);
+
+		napi_value reverse;
+		status = napi_get_boolean(env, obj->frame.reverse != 0, &reverse);
+		NAPI_STATUS_RETURN("Failed to get boolean")
+		status = napi_set_named_property(env, result, "reverse", reverse);
+
+		napi_value volume;
+		status = napi_create_double(env, obj->frame.volume, &volume);
+		NAPI_STATUS_RETURN("Failed to create double")
+		status = napi_set_named_property(env, result, "volume", volume);
+
+		return result;
 	}
 }
 

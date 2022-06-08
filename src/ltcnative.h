@@ -55,6 +55,7 @@ struct ltcobject {
   napi_async_work write_work;
   LTCDecoder *decoder;
   LTCFrameExt frame;
+  int framerate;
   int32_t apv;
   int32_t queue_size;
   enum ltc_soundformat sound_format;

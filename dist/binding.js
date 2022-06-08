@@ -6,7 +6,8 @@ class ltcwrapper {
         this.apv = opts.apv;
         this.queueSize = opts.queueSize;
         this.audioFormat = opts.audioFormat;
-        this.obj = addon.createLTCObject(this.apv, this.queueSize, this.audioFormat);
+        this.framerate = opts.framerate;
+        this.obj = addon.createLTCObject(this.apv, this.queueSize, this.audioFormat, this.framerate);
     }
     write(buffer) {
         return addon.writeAudio(this.obj, buffer);
