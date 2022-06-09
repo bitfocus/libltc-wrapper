@@ -12,10 +12,9 @@
 
 void destroy_ltc_object(napi_env env, void *data, void *hint)
 {
-	struct ltcobject *obj = (struct ltcobject *)data;
+	struct ltc_decoder_object *obj = (struct ltc_decoder_object *)data;
 
-	if (obj->decoder != NULL)
-	{
+	if (obj->decoder != NULL) {
 		ltc_decoder_free(obj->decoder);
 		obj->decoder = NULL;
 	}
@@ -23,16 +22,16 @@ void destroy_ltc_object(napi_env env, void *data, void *hint)
 	free(obj);
 }
 
-// create_ltc_object(apv, queue_size, audio_format)
-static napi_value create_ltc_object(napi_env env, napi_callback_info info)
+// create_ltc_decoder(apv, queue_size, audio_format)
+static napi_value create_ltc_decoder(napi_env env, napi_callback_info info)
 {
 	napi_value result;
 	napi_status status;
 
-	size_t argc = 4;
-	napi_value args[4];
+	size_t argc = 3;
+	napi_value args[3];
 	napi_valuetype type;
-	struct ltcobject *obj;
+	struct ltc_decoder_object *obj;
 
 	char *format;
 	size_t format_len;
@@ -62,25 +61,13 @@ static napi_value create_ltc_object(napi_env env, napi_callback_info info)
 		NAPI_ERROR_RETURN("Expected argument 3 to be a string");
 	}
 
-	status = napi_typeof(env, args[3], &type);
-	NAPI_STATUS_RETURN("Error fetching type of argument 4");
-	if (type != napi_number) {
-		NAPI_ERROR_RETURN("Expected argument 4 to be a number");
-	}
-
-	obj = (struct ltcobject *)calloc(sizeof(struct ltcobject), 1);
+	obj = (struct ltc_decoder_object *)calloc(sizeof(struct ltc_decoder_object), 1);
 	if (obj == NULL) {
 		NAPI_ERROR_RETURN("Error allocating memory");
 	}
 
 	napi_get_value_int32(env, args[0], &obj->apv);
 	napi_get_value_int32(env, args[1], &obj->queue_size);
-	napi_get_value_int32(env, args[3], &obj->framerate);
-
-	if (obj->framerate != 25 && obj->framerate != 30) {
-		free(obj);
-		NAPI_ERROR_RETURN("Invalid framerate, must be 25 or 30");
-	}
 
 	status = napi_get_value_string_utf8(env, args[2], NULL, 0, &format_len);
 	if (status != napi_ok) {
@@ -135,7 +122,7 @@ static napi_value create_ltc_object(napi_env env, napi_callback_info info)
 static napi_value write_audio(napi_env env, napi_callback_info info)
 {
 	napi_status status;
-	struct ltcobject *obj;
+	struct ltc_decoder_object *obj;
 
 	size_t argc = 2;
 	napi_value args[2];
@@ -214,7 +201,7 @@ static napi_value write_audio(napi_env env, napi_callback_info info)
 static napi_value read_frame(napi_env env, napi_callback_info info)
 {
 	napi_status status;
-	struct ltcobject *obj;
+	struct ltc_decoder_object *obj;
 
 	size_t argc = 1;
 	napi_value args[1];
@@ -257,7 +244,7 @@ static napi_value read_frame(napi_env env, napi_callback_info info)
 		napi_value ltc_df;
 		status = napi_get_boolean(env, obj->frame.ltc.dfbit != 0, &ltc_df);
 		NAPI_STATUS_RETURN("Failed to get boolean")
-		status = napi_set_named_property(env, result, "df", ltc_df);
+		status = napi_set_named_property(env, result, "dropped_frame", ltc_df);
 
 		napi_value days;
 		status = napi_create_int32(env, stime.days, &days);
@@ -309,6 +296,11 @@ static napi_value read_frame(napi_env env, napi_callback_info info)
 		NAPI_STATUS_RETURN("Failed to create double")
 		status = napi_set_named_property(env, result, "volume", volume);
 
+		napi_value timezone;
+		status = napi_create_string_utf8(env, stime.timezone, 5, &timezone);
+		NAPI_STATUS_RETURN("Failed to create string")
+		status = napi_set_named_property(env, result, "timezone", timezone);
+
 		return result;
 	}
 }
@@ -316,12 +308,12 @@ static napi_value read_frame(napi_env env, napi_callback_info info)
 napi_value Init(napi_env env, napi_value exports)
 {
 
-	napi_value create_ltc_object_function;
+	napi_value create_ltc_decoder_function;
 	napi_value write_audio_function;
 	napi_value read_frame_function;
 
-	NAPI_CALL(env, napi_create_function(env, "createLTCObject", NAPI_AUTO_LENGTH, create_ltc_object, NULL, &create_ltc_object_function));
-	NAPI_CALL(env, napi_set_named_property(env, exports, "createLTCObject", create_ltc_object_function));
+	NAPI_CALL(env, napi_create_function(env, "createLTCDecoder", NAPI_AUTO_LENGTH, create_ltc_decoder, NULL, &create_ltc_decoder_function));
+	NAPI_CALL(env, napi_set_named_property(env, exports, "createLTCDecoder", create_ltc_decoder_function));
 
 	NAPI_CALL(env, napi_create_function(env, "writeAudio", NAPI_AUTO_LENGTH, write_audio, NULL, &write_audio_function));
 	NAPI_CALL(env, napi_set_named_property(env, exports, "writeAudio", write_audio_function));

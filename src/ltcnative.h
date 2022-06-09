@@ -47,7 +47,7 @@ enum ltc_soundformat {
   LTC_SOUND_FORMAT_FL = 3,
 };
 
-struct ltcobject {
+struct ltc_decoder_object {
   napi_env env;
   napi_deferred read_deferred;
   napi_deferred write_deferred;
