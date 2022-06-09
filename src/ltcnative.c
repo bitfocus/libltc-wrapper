@@ -10,7 +10,117 @@
 #include <js_native_api.h>
 #include "ltcnative.h"
 
-void destroy_ltc_object(napi_env env, void *data, void *hint)
+static void destroy_ltc_encoder_object(napi_env env, void *data, void *hint)
+{
+	struct ltc_encoder_object *obj = (struct ltc_encoder_object *)data;
+
+	if (obj->encoder != NULL) {
+		ltc_encoder_free(obj->encoder);
+		obj->encoder = NULL;
+	}
+
+	free(obj);
+}
+
+// create_ltc_encoder(sample_rate, fps, flags)
+static napi_value create_ltc_encoder(napi_env env, napi_callback_info info)
+{
+	napi_value result;
+	napi_status status;
+
+	size_t argc = 3;
+	napi_value args[3];
+	napi_valuetype type;
+	struct ltc_encoder_object *obj;
+
+	status = napi_get_cb_info(env, info, &argc, args, NULL, NULL);
+	NAPI_STATUS_RETURN("Failed to parse arguments")
+
+	if (argc < 3) {
+		NAPI_ERROR_RETURN("Wrong number of arguments");
+	}
+
+	status = napi_typeof(env, args[0], &type);
+	NAPI_STATUS_RETURN("Error fetching type of argument 1");
+	if (type != napi_number) {
+		NAPI_ERROR_RETURN("Expected argument 1 to be a number");
+	}
+
+	status = napi_typeof(env, args[1], &type);
+	NAPI_STATUS_RETURN("Error fetching type of argument 2");
+	if (type != napi_number) {
+		NAPI_ERROR_RETURN("Expected argument 2 to be a number");
+	}
+
+	obj = (struct ltc_encoder_object *)calloc(sizeof(struct ltc_encoder_object), 1);
+	if (obj == NULL) {
+		NAPI_ERROR_RETURN("Error allocating memory");
+	}
+
+	status = napi_typeof(env, args[2], &type);
+	NAPI_STATUS_RETURN("Error fetching type of argument 3");
+
+	status = napi_get_value_double(env, args[0], &obj->sample_rate);
+	NAPI_STATUS_RETURN("Error fetching value of argument 1");
+
+	status = napi_get_value_double(env, args[1], &obj->fps);
+	NAPI_STATUS_RETURN("Error fetching value of argument 2");
+
+	status = napi_get_value_int32(env, args[2], &obj->flags);
+	NAPI_STATUS_RETURN("Error fetching value of argument 3");
+
+	obj->encoder = ltc_encoder_create(obj->sample_rate, obj->fps, obj->fps == 25 ? LTC_TV_625_50 : LTC_TV_525_60, obj->flags);
+
+	status = napi_create_external(env, obj, destroy_ltc_encoder_object, NULL, &result);
+	NAPI_STATUS_RETURN("Failed to create external");
+
+	return result;
+}
+
+static napi_value encoder_set_volume(napi_env env, napi_callback_info info)
+{
+	napi_status status;
+
+	size_t argc = 2;
+	napi_value args[2];
+	napi_valuetype type;
+	struct ltc_encoder_object *obj;
+
+	status = napi_get_cb_info(env, info, &argc, args, NULL, NULL);
+	NAPI_STATUS_RETURN("Failed to parse arguments")
+
+	if (argc < 2) {
+		NAPI_ERROR_RETURN("Wrong number of arguments");
+	}
+
+	status = napi_typeof(env, args[0], &type);
+	NAPI_STATUS_RETURN("Error fetching type of argument 1");
+	if (type != napi_external) {
+		NAPI_ERROR_RETURN("Expected argument 1 to be an external");
+	}
+
+	status = napi_typeof(env, args[1], &type);
+	NAPI_STATUS_RETURN("Error fetching type of argument 2");
+	if (type != napi_number) {
+		NAPI_ERROR_RETURN("Expected argument 2 to be a number");
+	}
+
+	status = napi_get_value_external(env, args[0], (void **)&obj);
+	NAPI_STATUS_RETURN("Error fetching value of argument 1");
+
+	double dbFS;
+	status = napi_get_value_double(env, args[1], &dbFS);
+	NAPI_STATUS_RETURN("Error fetching value of argument 2");
+
+	int result = ltc_encoder_set_volume(obj->encoder, dbFS);
+	if (result == -1) {
+		NAPI_ERROR_RETURN("Invalid volume level, should be <= 0 dBFS");
+	}
+
+	return NULL;
+}
+
+static void destroy_ltc_decoder_object(napi_env env, void *data, void *hint)
 {
 	struct ltc_decoder_object *obj = (struct ltc_decoder_object *)data;
 
@@ -113,7 +223,7 @@ static napi_value create_ltc_decoder(napi_env env, napi_callback_info info)
 		NAPI_ERROR_RETURN("Failed to create decoder");
 	}
 
-	status = napi_create_external(env, obj, destroy_ltc_object, NULL, &result);
+	status = napi_create_external(env, obj, destroy_ltc_decoder_object, NULL, &result);
 	NAPI_STATUS_RETURN("Failed to create external");
 
 	return result;
@@ -244,7 +354,7 @@ static napi_value read_frame(napi_env env, napi_callback_info info)
 		napi_value ltc_df;
 		status = napi_get_boolean(env, obj->frame.ltc.dfbit != 0, &ltc_df);
 		NAPI_STATUS_RETURN("Failed to get boolean")
-		status = napi_set_named_property(env, result, "dropped_frame", ltc_df);
+		status = napi_set_named_property(env, result, "drop_frame_format", ltc_df);
 
 		napi_value days;
 		status = napi_create_int32(env, stime.days, &days);
@@ -311,6 +421,8 @@ napi_value Init(napi_env env, napi_value exports)
 	napi_value create_ltc_decoder_function;
 	napi_value write_audio_function;
 	napi_value read_frame_function;
+	napi_value create_ltc_encoder_function;
+	napi_value encoder_set_volume_function;
 
 	NAPI_CALL(env, napi_create_function(env, "createLTCDecoder", NAPI_AUTO_LENGTH, create_ltc_decoder, NULL, &create_ltc_decoder_function));
 	NAPI_CALL(env, napi_set_named_property(env, exports, "createLTCDecoder", create_ltc_decoder_function));
@@ -321,6 +433,12 @@ napi_value Init(napi_env env, napi_value exports)
 
 	NAPI_CALL(env, napi_create_function(env, "readFrame", NAPI_AUTO_LENGTH, read_frame, NULL, &read_frame_function));
 	NAPI_CALL(env, napi_set_named_property(env, exports, "readFrame", read_frame_function));
+
+	NAPI_CALL(env, napi_create_function(env, "createLTCEncoder", NAPI_AUTO_LENGTH, create_ltc_encoder, NULL, &create_ltc_encoder_function));
+	NAPI_CALL(env, napi_set_named_property(env, exports, "createLTCEncoder", create_ltc_encoder_function));
+
+	NAPI_CALL(env, napi_create_function(env, "encoderSetVolume", NAPI_AUTO_LENGTH, encoder_set_volume, NULL, &encoder_set_volume_function));
+	NAPI_CALL(env, napi_set_named_property(env, exports, "encoderSetVolume", encoder_set_volume_function));
 
 	return exports;
 }

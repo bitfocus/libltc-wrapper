@@ -49,17 +49,21 @@ enum ltc_soundformat {
 
 struct ltc_decoder_object {
   napi_env env;
-  napi_deferred read_deferred;
-  napi_deferred write_deferred;
-  napi_async_work read_work;
-  napi_async_work write_work;
   LTCDecoder *decoder;
   LTCFrameExt frame;
-  int framerate;
   int32_t apv;
   int32_t queue_size;
   enum ltc_soundformat sound_format;
   ltc_off_t position;
+};
+
+struct ltc_encoder_object {
+  napi_env env;
+  LTCEncoder *encoder;
+  LTCFrameExt frame;
+  double fps;
+  double sample_rate;
+  int flags;
 };
 
 #endif

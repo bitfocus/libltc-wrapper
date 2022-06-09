@@ -1,5 +1,17 @@
 const addon = require("../build/Release/ltc-native");
 
+const LTC_USE_DATE = 1;
+const LTC_TC_CLOCK = 2;
+const LTC_BGF_DONT_TOUCH = 4;
+const LTC_NO_PARITY = 8;
+
+export {
+  LTC_USE_DATE,
+  LTC_TC_CLOCK,
+  LTC_BGF_DONT_TOUCH,
+  LTC_NO_PARITY
+}
+
 export type LTCFrame = {
   days: number;
   months: number;
@@ -12,8 +24,47 @@ export type LTCFrame = {
   reverse: boolean;
   volume: number;
   timezone: string;
-  dropped_frame: boolean;
+  drop_frame_format: boolean;
 };
+
+export class LTCEncoder {
+  encoder: any;
+  sampleRate: number;
+  frameRate: number;
+  flags: number;
+
+  /**
+   * Create a LTC Encoder instance
+   * 
+   * @param sampleRate Sample rate of the audio stream (for example 48000)
+   * @param framerate Frame rate of the LTC stream (for example 25)
+   * @param flags Flags for the encoder (see LTC_USE_DATE, LTC_TC_CLOCK, LTC_BGF_DONT_TOUCH, LTC_NO_PARITY)
+   */
+  constructor(sampleRate: number, framerate: number, flags: number = LTC_USE_DATE) {
+    this.sampleRate = sampleRate;
+    this.frameRate = framerate;
+    this.flags = flags;
+
+    if (flags > 8 || flags < 0) {
+      throw new Error("Invalid flags");
+    }
+
+    this.encoder = addon.createLTCEncoder(sampleRate, framerate, flags);
+  }
+
+  /**
+   * Set the volume of the generated LTC signal
+   * 
+   * Typically LTC is sent at 0dBu ; in EBU callibrated systems that corresponds to -18dBFS. - by default libltc creates -3dBFS
+   * since libltc generates 8bit audio-data, the minimum dBFS is about -42dB which corresponds to 1 bit.
+   * 0dB corresponds to a signal range of 127 1..255 with 128 at the center.
+   * 
+   * @param dBFS volume in dBFS
+   */
+  setVolume(dBFS: number) {
+    addon.encoderSetVolume(this.encoder, dBFS);
+  }
+}
 
 export class LTCDecoder {
   apv: number;

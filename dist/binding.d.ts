@@ -1,4 +1,9 @@
 /// <reference types="node" />
+declare const LTC_USE_DATE = 1;
+declare const LTC_TC_CLOCK = 2;
+declare const LTC_BGF_DONT_TOUCH = 4;
+declare const LTC_NO_PARITY = 8;
+export { LTC_USE_DATE, LTC_TC_CLOCK, LTC_BGF_DONT_TOUCH, LTC_NO_PARITY };
 export declare type LTCFrame = {
     days: number;
     months: number;
@@ -11,12 +16,36 @@ export declare type LTCFrame = {
     reverse: boolean;
     volume: number;
     timezone: string;
-    dropped_frame: boolean;
+    drop_frame_format: boolean;
 };
+export declare class LTCEncoder {
+    encoder: any;
+    sampleRate: number;
+    frameRate: number;
+    flags: number;
+    /**
+     * Create a LTC Encoder instance
+     *
+     * @param sampleRate Sample rate of the audio stream (for example 48000)
+     * @param framerate Frame rate of the LTC stream (for example 25)
+     * @param flags Flags for the encoder (see LTC_USE_DATE, LTC_TC_CLOCK, LTC_BGF_DONT_TOUCH, LTC_NO_PARITY)
+     */
+    constructor(sampleRate: number, framerate: number, flags?: number);
+    /**
+     * Set the volume of the generated LTC signal
+     *
+     * Typically LTC is sent at 0dBu ; in EBU callibrated systems that corresponds to -18dBFS. - by default libltc creates -3dBFS
+     * since libltc generates 8bit audio-data, the minimum dBFS is about -42dB which corresponds to 1 bit.
+     * 0dB corresponds to a signal range of 127 1..255 with 128 at the center.
+     *
+     * @param dBFS volume in dBFS
+     */
+    setVolume(dBFS: number): void;
+}
 export declare class LTCDecoder {
     apv: number;
     queueSize: number;
-    audioFormat: 'u8' | 'u16' | 's16' | 'float';
+    audioFormat: "u8" | "u16" | "s16" | "float";
     obj: any;
     /**
      * Create a LTC decoder instance
@@ -26,7 +55,7 @@ export declare class LTCDecoder {
      * @param audioFormat u8 (unsigned 8 bit), u16 (unsigned 16 bit), s16 (signed 16 bit), float (floating point)
      * @param queueSize maximum amount of frames queued before you read() them, defaults to 32
      */
-    constructor(sampleRate: number, framerate: number, audioFormat: 'u8' | 'u16' | 's16' | 'float', queueSize?: number);
+    constructor(sampleRate: number, framerate: number, audioFormat: "u8" | "u16" | "s16" | "float", queueSize?: number);
     /**
      * Write audio data to the decoder, should be full frames, but any number of frames.
      *
