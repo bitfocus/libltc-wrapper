@@ -160,22 +160,6 @@ static napi_value encoder_set_filter(napi_env env, napi_callback_info info)
 	return NULL;
 }
 
-#define NAPI_GETOBJPARAM_ORRETURN(napi_type, name, error) \
-	status = napi_create_string_utf8(env, name, NAPI_AUTO_LENGTH, &key);\
-	if (status != napi_ok) {\
-		napi_throw_error(env, NULL, "Error creating string");\
-	}\
-	status = napi_get_property(env, args[1], key, &value); \
-	if (status != napi_ok) {\
-		napi_throw_error(env, NULL, error);\
-		return NULL;\
-	}\
-	status = napi_typeof(env, value, &type);\
-	if (type != napi_type) {\
-		napi_throw_error(env, NULL, name " has invalid type in object: " error);\
-	}
-
-
 static napi_value encoder_set_timecode(napi_env env, napi_callback_info info)
 {
 	napi_status status;
@@ -208,51 +192,22 @@ static napi_value encoder_set_timecode(napi_env env, napi_callback_info info)
 	NAPI_STATUS_RETURN("Error fetching value of argument 1");
 
 	SMPTETimecode timecode;
-	napi_value key;
 	napi_value value;
 	int32_t intvalue;
+	size_t stringlength;
 
-	NAPI_GETOBJPARAM_ORRETURN(napi_number, "years", "Error fetching years parameter from timecode object");
-	status = napi_get_value_int32(env, value, &intvalue);
-	NAPI_STATUS_RETURN("Error fetching integer value from years in timecode object")
-	timecode.years = intvalue;
+	NAPI_GETOBJPARAM_NUMBER_ORRETURN("years", timecode.years);
+	NAPI_GETOBJPARAM_NUMBER_ORRETURN("months", timecode.months);
+	NAPI_GETOBJPARAM_NUMBER_ORRETURN("days", timecode.days);
 
-	NAPI_GETOBJPARAM_ORRETURN(napi_number, "months", "Error fetching months parameter from timecode object");
-	status = napi_get_value_int32(env, value, &intvalue);
-	NAPI_STATUS_RETURN("Error fetching integer value from months in timecode object")
-	timecode.months = intvalue;
+	NAPI_GETOBJPARAM_NUMBER_ORRETURN("hours", timecode.hours);
+	NAPI_GETOBJPARAM_NUMBER_ORRETURN("minutes", timecode.mins);
+	NAPI_GETOBJPARAM_NUMBER_ORRETURN("seconds", timecode.secs);
 
-	NAPI_GETOBJPARAM_ORRETURN(napi_number, "days", "Error fetching days parameter from timecode object");
-	status = napi_get_value_int32(env, value, &intvalue);
-	NAPI_STATUS_RETURN("Error fetching integer value from days in timecode object")
-	timecode.days = intvalue;
+	NAPI_GETOBJPARAM_NUMBER_ORRETURN("frame", timecode.frame);
 
-	NAPI_GETOBJPARAM_ORRETURN(napi_number, "hours", "Error fetching hours parameter from timecode object");
-	status = napi_get_value_int32(env, value, &intvalue);
-	NAPI_STATUS_RETURN("Error fetching integer value from hours in timecode object")
-	timecode.hours = intvalue;
-
-	NAPI_GETOBJPARAM_ORRETURN(napi_number, "minutes", "Error fetching minutes parameter from timecode object");
-	status = napi_get_value_int32(env, value, &intvalue);
-	NAPI_STATUS_RETURN("Error fetching integer value from minutes in timecode object")
-	timecode.mins = intvalue;
-
-	NAPI_GETOBJPARAM_ORRETURN(napi_number, "seconds", "Error fetching seconds parameter from timecode object");
-	status = napi_get_value_int32(env, value, &intvalue);
-	NAPI_STATUS_RETURN("Error fetching integer value from seconds in timecode object")
-	timecode.secs = intvalue;
-
-	NAPI_GETOBJPARAM_ORRETURN(napi_number, "frame", "Error fetching frame parameter from timecode object");
-	status = napi_get_value_int32(env, value, &intvalue);
-	NAPI_STATUS_RETURN("Error fetching integer value from frame in timecode object")
-	timecode.frame = intvalue;
-
-	NAPI_GETOBJPARAM_ORRETURN(napi_string, "timezone", "Error fetching timezone parameter from timecode object");
-	size_t readBytes;
-	status = napi_get_value_string_utf8(env, value, (char *)&timecode.timezone, 6, &readBytes);
-	NAPI_STATUS_RETURN("Error fetching string value from timezone in timecode object")
-
-	if (readBytes != 5) {
+	NAPI_GETOBJPARAM_STRING_ORRETURN("timezone", (char *)&timecode.timezone, 6);
+	if (stringlength != 5) {
 		NAPI_ERROR_RETURN("Timezone string in timecode object has invalid length");
 	}
 
@@ -260,28 +215,6 @@ static napi_value encoder_set_timecode(napi_env env, napi_callback_info info)
 
 	return NULL;
 }
-
-#define NAPI_SETOBJPARAM_NUMBER_ORRETURN(name, val) \
-	status = napi_create_int32(env, val, &value); \
-	if (status != napi_ok) {\
-		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
-	}\
-	status = napi_set_named_property(env, result, name, value); \
-	if (status != napi_ok) {\
-		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
-		return NULL;\
-	}
-
-#define NAPI_SETOBJPARAM_STRING_ORRETURN(name, val) \
-	status = napi_create_string_utf8(env, val, NAPI_AUTO_LENGTH, &value); \
-	if (status != napi_ok) {\
-		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
-	}\
-	status = napi_set_named_property(env, result, name, value); \
-	if (status != napi_ok) {\
-		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
-		return NULL;\
-	}
 
 static napi_value encoder_get_timecode(napi_env env, napi_callback_info info)
 {
@@ -320,9 +253,11 @@ static napi_value encoder_get_timecode(napi_env env, napi_callback_info info)
 	NAPI_SETOBJPARAM_NUMBER_ORRETURN("years", timecode.years)
 	NAPI_SETOBJPARAM_NUMBER_ORRETURN("months", timecode.months)
 	NAPI_SETOBJPARAM_NUMBER_ORRETURN("days", timecode.days)
+
 	NAPI_SETOBJPARAM_NUMBER_ORRETURN("hours", timecode.hours)
 	NAPI_SETOBJPARAM_NUMBER_ORRETURN("minutes", timecode.mins)
 	NAPI_SETOBJPARAM_NUMBER_ORRETURN("seconds", timecode.secs)
+
 	NAPI_SETOBJPARAM_NUMBER_ORRETURN("frame", timecode.frame)
 
 	NAPI_SETOBJPARAM_STRING_ORRETURN("timezone", timecode.timezone)

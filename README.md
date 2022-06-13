@@ -30,7 +30,7 @@ On debian based systems the library is usually installed using `sudo apt install
 ## Decoding
 
 ```javascript
-    const { LTCDecoder } = require('ltc-wrapper');
+    const { LTCDecoder } = require('libltc-wrapper');
     const decoder = new LTCDecoder(48000, 25, "u8"); // 48khz, 25 fps, unsigned 8 bit
 
     // Write audio buffer to the decoder
@@ -48,7 +48,7 @@ On debian based systems the library is usually installed using `sudo apt install
 ## Encoding
 
 ```javascript
-    const { LTCEncoder, LTC_USE_DATE } = require('ltc-wrapper');
+    const { LTCEncoder, LTC_USE_DATE } = require('libltc-wrapper');
 
     const encoder = new LTCEncoder(48000, 25, LTC_USE_DATE); // 48khz, 25 fps, LTC_USE_DATE flag
     

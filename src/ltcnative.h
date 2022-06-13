@@ -40,6 +40,63 @@
     napi_throw_error(env, NULL, error); \
     return NULL;
 
+#define NAPI_GETOBJPARAM_NUMBER_ORRETURN(name, saveto) \
+	status = napi_get_named_property(env, args[1], name, &value); \
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error fetching value from property '" name "' in timecode object");\
+		return NULL;\
+	}\
+	status = napi_typeof(env, value, &type);\
+	if (type != napi_number) {\
+		napi_throw_error(env, NULL, "Error fetching integer value from property '" name "' in timecode object: not numeric");\
+		return NULL;\
+	}\
+	status = napi_get_value_int32(env, value, &intvalue);\
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error reading integer value from property '" name "' in timecode object");\
+		return NULL;\
+	}\
+	saveto = intvalue;
+
+#define NAPI_GETOBJPARAM_STRING_ORRETURN(name, saveto, length) \
+	status = napi_get_named_property(env, args[1], name, &value); \
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error fetching value from property '" name "' in timecode object");\
+		return NULL;\
+	}\
+	status = napi_typeof(env, value, &type);\
+	if (type != napi_string) {\
+		napi_throw_error(env, NULL, "Error fetching string value from property '" name "' in timecode object: not a string");\
+		return NULL;\
+	}\
+	status = napi_get_value_string_utf8(env, value, saveto, length, &stringlength);\
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error reading integer value from property '" name "' in timecode object");\
+		return NULL;\
+	}
+
+#define NAPI_SETOBJPARAM_NUMBER_ORRETURN(name, val) \
+	status = napi_create_int32(env, val, &value); \
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
+	}\
+	status = napi_set_named_property(env, result, name, value); \
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
+		return NULL;\
+	}
+
+#define NAPI_SETOBJPARAM_STRING_ORRETURN(name, val) \
+	status = napi_create_string_utf8(env, val, NAPI_AUTO_LENGTH, &value); \
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
+	}\
+	status = napi_set_named_property(env, result, name, value); \
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
+		return NULL;\
+	}
+
 enum ltc_soundformat {
   LTC_SOUND_FORMAT_U8 = 0,
   LTC_SOUND_FORMAT_S16 = 1,
