@@ -22,8 +22,8 @@ On debian based systems the library is usually installed using `sudo apt install
 
 # State
 
-* Working encoding and decoding LTC audio
-* Tested and working on Macbook Pro M1 (arm64) and Ubuntu 20.04 (x64)
+* Successfully encodes and decodes LTC audio
+* Tested on Macbook Pro M1 (arm64) and Ubuntu 20.04 (x64)
 
 # Examples
 
@@ -58,7 +58,7 @@ On debian based systems the library is usually installed using `sudo apt install
       hours: time.getHours(),
       minutes: time.getMinutes(),
       seconds: time.getSeconds(),
-      frames: time.getMilliseconds() / (1000 / 25),
+      frame: time.getMilliseconds() / (1000 / 25),
       days: time.getDate(),
       months: time.getMonth() + 1,
       years: time.getFullYear() % 100,
