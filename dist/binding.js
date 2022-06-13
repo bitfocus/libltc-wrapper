@@ -2,12 +2,24 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LTCDecoder = exports.LTCEncoder = exports.LTC_NO_PARITY = exports.LTC_BGF_DONT_TOUCH = exports.LTC_TC_CLOCK = exports.LTC_USE_DATE = void 0;
 const addon = require("../build/Release/ltc-native");
+/**
+ * Frame increment/decrement use date, also set BGF2 to '1' when encoder is initialized or re-initialized (unless LTC_BGF_DONT_TOUCH is given)
+ */
 const LTC_USE_DATE = 1;
 exports.LTC_USE_DATE = LTC_USE_DATE;
+/**
+ * The Timecode is wall-clock aka freerun. This also sets BGF1 (unless LTC_BGF_DONT_TOUCH is given)
+ */
 const LTC_TC_CLOCK = 2;
 exports.LTC_TC_CLOCK = LTC_TC_CLOCK;
+/**
+ * Wncoder init or re-init does not touch the BGF bits (initial values after initialization is zero)
+ */
 const LTC_BGF_DONT_TOUCH = 4;
 exports.LTC_BGF_DONT_TOUCH = LTC_BGF_DONT_TOUCH;
+/**
+ * Parity bit is left untouched when setting or in/decrementing the encoder frame-number
+ */
 const LTC_NO_PARITY = 8;
 exports.LTC_NO_PARITY = LTC_NO_PARITY;
 class LTCEncoder {
@@ -60,13 +72,30 @@ class LTCEncoder {
         addon.encoderSetTimecode(this.encoder, Object.assign(Object.assign({ hours: 0, minutes: 0, seconds: 0, days: 0, months: 0, frame: 0, timezone: "+0200" }, timecode), { years: (timecode.years || 0) % 100 }));
     }
     /**
+     * Get the current encoder timecode
+     *
+     * @returns LTCTimecode object containing the current timecode
+     */
+    getTimecode() {
+        return addon.encoderGetTimecode(this.encoder);
+    }
+    /**
      * Write the next frame to the audio buffer
     */
     encodeFrame() {
         return addon.encoderEncodeFrame(this.encoder);
     }
-    increaseTimecode() {
-        addon.encoderIncreaseTimecode(this.encoder);
+    /**
+     * Increment the timecode by one frame
+     */
+    incrementTimecode() {
+        addon.encoderIncrementTimecode(this.encoder);
+    }
+    /**
+     * Decrement the timecode by one frame
+     */
+    decrementTimecode() {
+        addon.encoderDecrementTimecode(this.encoder);
     }
     /**
      * Get audio buffer for the current frame

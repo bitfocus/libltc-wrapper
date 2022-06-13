@@ -1,7 +1,19 @@
 /// <reference types="node" />
+/**
+ * Frame increment/decrement use date, also set BGF2 to '1' when encoder is initialized or re-initialized (unless LTC_BGF_DONT_TOUCH is given)
+ */
 declare const LTC_USE_DATE = 1;
+/**
+ * The Timecode is wall-clock aka freerun. This also sets BGF1 (unless LTC_BGF_DONT_TOUCH is given)
+ */
 declare const LTC_TC_CLOCK = 2;
+/**
+ * Wncoder init or re-init does not touch the BGF bits (initial values after initialization is zero)
+ */
 declare const LTC_BGF_DONT_TOUCH = 4;
+/**
+ * Parity bit is left untouched when setting or in/decrementing the encoder frame-number
+ */
 declare const LTC_NO_PARITY = 8;
 export { LTC_USE_DATE, LTC_TC_CLOCK, LTC_BGF_DONT_TOUCH, LTC_NO_PARITY };
 export declare type LTCFrame = {
@@ -68,10 +80,23 @@ export declare class LTCEncoder {
      */
     setTimecode(timecode: Partial<LTCTimecode>): void;
     /**
+     * Get the current encoder timecode
+     *
+     * @returns LTCTimecode object containing the current timecode
+     */
+    getTimecode(): LTCTimecode;
+    /**
      * Write the next frame to the audio buffer
     */
     encodeFrame(): any;
-    increaseTimecode(): void;
+    /**
+     * Increment the timecode by one frame
+     */
+    incrementTimecode(): void;
+    /**
+     * Decrement the timecode by one frame
+     */
+    decrementTimecode(): void;
     /**
      * Get audio buffer for the current frame
      */

@@ -1,8 +1,20 @@
 const addon = require("../build/Release/ltc-native");
 
+/**
+ * Frame increment/decrement use date, also set BGF2 to '1' when encoder is initialized or re-initialized (unless LTC_BGF_DONT_TOUCH is given)
+ */
 const LTC_USE_DATE = 1;
+/**
+ * The Timecode is wall-clock aka freerun. This also sets BGF1 (unless LTC_BGF_DONT_TOUCH is given)
+ */
 const LTC_TC_CLOCK = 2;
+/**
+ * Wncoder init or re-init does not touch the BGF bits (initial values after initialization is zero)
+ */
 const LTC_BGF_DONT_TOUCH = 4;
+/**
+ * Parity bit is left untouched when setting or in/decrementing the encoder frame-number
+ */
 const LTC_NO_PARITY = 8;
 
 export {
@@ -109,14 +121,33 @@ export class LTCEncoder {
   }
 
   /**
+   * Get the current encoder timecode
+   * 
+   * @returns LTCTimecode object containing the current timecode
+   */
+  getTimecode(): LTCTimecode {
+    return addon.encoderGetTimecode(this.encoder) as LTCTimecode;
+  }
+
+  /**
    * Write the next frame to the audio buffer
   */
   encodeFrame() {
     return addon.encoderEncodeFrame(this.encoder);
   }
 
-  increaseTimecode() {
-    addon.encoderIncreaseTimecode(this.encoder);
+  /**
+   * Increment the timecode by one frame
+   */
+  incrementTimecode() {
+    addon.encoderIncrementTimecode(this.encoder);
+  }
+
+  /**
+   * Decrement the timecode by one frame
+   */
+  decrementTimecode() {
+    addon.encoderDecrementTimecode(this.encoder);
   }
 
   /**

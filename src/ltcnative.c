@@ -261,6 +261,75 @@ static napi_value encoder_set_timecode(napi_env env, napi_callback_info info)
 	return NULL;
 }
 
+#define NAPI_SETOBJPARAM_NUMBER_ORRETURN(name, val) \
+	status = napi_create_int32(env, val, &value); \
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
+	}\
+	status = napi_set_named_property(env, result, name, value); \
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
+		return NULL;\
+	}
+
+#define NAPI_SETOBJPARAM_STRING_ORRETURN(name, val) \
+	status = napi_create_string_utf8(env, val, NAPI_AUTO_LENGTH, &value); \
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
+	}\
+	status = napi_set_named_property(env, result, name, value); \
+	if (status != napi_ok) {\
+		napi_throw_error(env, NULL, "Error creating '" name "' parameter in timecode object");\
+		return NULL;\
+	}
+
+static napi_value encoder_get_timecode(napi_env env, napi_callback_info info)
+{
+	napi_status status;
+
+	size_t argc = 1;
+	napi_value args[1];
+	napi_valuetype type;
+	struct ltc_encoder_object *obj;
+
+	status = napi_get_cb_info(env, info, &argc, args, NULL, NULL);
+	NAPI_STATUS_RETURN("Failed to parse arguments")
+
+	if (argc < 1) {
+		NAPI_ERROR_RETURN("Wrong number of arguments");
+	}
+
+	status = napi_typeof(env, args[0], &type);
+	NAPI_STATUS_RETURN("Error fetching type of argument 1");
+	if (type != napi_external) {
+		NAPI_ERROR_RETURN("Expected argument 1 to be an external");
+	}
+
+	status = napi_get_value_external(env, args[0], (void **)&obj);
+	NAPI_STATUS_RETURN("Error fetching value of argument 1");
+
+	SMPTETimecode timecode;
+	ltc_encoder_get_timecode(obj->encoder, &timecode);
+
+	napi_value result;
+	status = napi_create_object(env, &result);
+	NAPI_STATUS_RETURN("Error creating result object")
+
+	napi_value value;
+
+	NAPI_SETOBJPARAM_NUMBER_ORRETURN("years", timecode.years)
+	NAPI_SETOBJPARAM_NUMBER_ORRETURN("months", timecode.months)
+	NAPI_SETOBJPARAM_NUMBER_ORRETURN("days", timecode.days)
+	NAPI_SETOBJPARAM_NUMBER_ORRETURN("hours", timecode.hours)
+	NAPI_SETOBJPARAM_NUMBER_ORRETURN("minutes", timecode.mins)
+	NAPI_SETOBJPARAM_NUMBER_ORRETURN("seconds", timecode.secs)
+	NAPI_SETOBJPARAM_NUMBER_ORRETURN("frame", timecode.frame)
+
+	NAPI_SETOBJPARAM_STRING_ORRETURN("timezone", timecode.timezone)
+
+	return result;
+}
+
 static napi_value encoder_encode_frame(napi_env env, napi_callback_info info)
 {
 	napi_status status;
@@ -331,7 +400,7 @@ static napi_value encoder_get_buffer(napi_env env, napi_callback_info info)
 	return buffer;
 }
 
-static napi_value encoder_increase_timecode(napi_env env, napi_callback_info info)
+static napi_value encoder_increment_timecode(napi_env env, napi_callback_info info)
 {
 	napi_status status;
 
@@ -357,6 +426,36 @@ static napi_value encoder_increase_timecode(napi_env env, napi_callback_info inf
 	NAPI_STATUS_RETURN("Error fetching value of argument 1");
 
 	ltc_encoder_inc_timecode(obj->encoder);
+
+	return NULL;
+}
+
+static napi_value encoder_decrement_timecode(napi_env env, napi_callback_info info)
+{
+	napi_status status;
+
+	size_t argc = 1;
+	napi_value args[1];
+	napi_valuetype type;
+
+	status = napi_get_cb_info(env, info, &argc, args, NULL, NULL);
+	NAPI_STATUS_RETURN("Failed to parse arguments")
+
+	if (argc < 1) {
+		NAPI_ERROR_RETURN("Wrong number of arguments");
+	}
+
+	status = napi_typeof(env, args[0], &type);
+	NAPI_STATUS_RETURN("Error fetching type of argument 1");
+	if (type != napi_external) {
+		NAPI_ERROR_RETURN("Expected argument 1 to be an external");
+	}
+
+	struct ltc_encoder_object *obj;
+	status = napi_get_value_external(env, args[0], (void **)&obj);
+	NAPI_STATUS_RETURN("Error fetching value of argument 1");
+
+	ltc_encoder_dec_timecode(obj->encoder);
 
 	return NULL;
 }
@@ -666,16 +765,17 @@ napi_value Init(napi_env env, napi_value exports)
 	napi_value encoder_set_volume_function;
 	napi_value encoder_set_filter_function;
 	napi_value encoder_set_timecode_function;
+	napi_value encoder_get_timecode_function;
 	napi_value encoder_encode_frame_function;
 	napi_value encoder_get_buffer_function;
-	napi_value encoder_increase_timecode_function;
+	napi_value encoder_increment_timecode_function;
+	napi_value encoder_decrement_timecode_function;
 
 	NAPI_CALL(env, napi_create_function(env, "createLTCDecoder", NAPI_AUTO_LENGTH, create_ltc_decoder, NULL, &create_ltc_decoder_function));
 	NAPI_CALL(env, napi_set_named_property(env, exports, "createLTCDecoder", create_ltc_decoder_function));
 
 	NAPI_CALL(env, napi_create_function(env, "writeAudio", NAPI_AUTO_LENGTH, write_audio, NULL, &write_audio_function));
 	NAPI_CALL(env, napi_set_named_property(env, exports, "writeAudio", write_audio_function));
-
 
 	NAPI_CALL(env, napi_create_function(env, "readFrame", NAPI_AUTO_LENGTH, read_frame, NULL, &read_frame_function));
 	NAPI_CALL(env, napi_set_named_property(env, exports, "readFrame", read_frame_function));
@@ -692,14 +792,20 @@ napi_value Init(napi_env env, napi_value exports)
 	NAPI_CALL(env, napi_create_function(env, "encoderSetTimecode", NAPI_AUTO_LENGTH, encoder_set_timecode, NULL, &encoder_set_timecode_function));
 	NAPI_CALL(env, napi_set_named_property(env, exports, "encoderSetTimecode", encoder_set_timecode_function));
 
+	NAPI_CALL(env, napi_create_function(env, "encoderGetTimecode", NAPI_AUTO_LENGTH, encoder_get_timecode, NULL, &encoder_get_timecode_function));
+	NAPI_CALL(env, napi_set_named_property(env, exports, "encoderGetTimecode", encoder_get_timecode_function));
+
 	NAPI_CALL(env, napi_create_function(env, "encoderEncodeFrame", NAPI_AUTO_LENGTH, encoder_encode_frame, NULL, &encoder_encode_frame_function));
 	NAPI_CALL(env, napi_set_named_property(env, exports, "encoderEncodeFrame", encoder_encode_frame_function));
 
 	NAPI_CALL(env, napi_create_function(env, "encoderGetBuffer", NAPI_AUTO_LENGTH, encoder_get_buffer, NULL, &encoder_get_buffer_function));
 	NAPI_CALL(env, napi_set_named_property(env, exports, "encoderGetBuffer", encoder_get_buffer_function));
 
-	NAPI_CALL(env, napi_create_function(env, "encoderIncreaseTimecode", NAPI_AUTO_LENGTH, encoder_increase_timecode, NULL, &encoder_increase_timecode_function));
-	NAPI_CALL(env, napi_set_named_property(env, exports, "encoderIncreaseTimecode", encoder_increase_timecode_function));
+	NAPI_CALL(env, napi_create_function(env, "encoderIncrementTimecode", NAPI_AUTO_LENGTH, encoder_increment_timecode, NULL, &encoder_increment_timecode_function));
+	NAPI_CALL(env, napi_set_named_property(env, exports, "encoderIncrementTimecode", encoder_increment_timecode_function));
+
+	NAPI_CALL(env, napi_create_function(env, "encoderDecrementTimecode", NAPI_AUTO_LENGTH, encoder_decrement_timecode, NULL, &encoder_decrement_timecode_function));
+	NAPI_CALL(env, napi_set_named_property(env, exports, "encoderDecrementTimecode", encoder_decrement_timecode_function));
 
 	return exports;
 }

@@ -56,7 +56,16 @@ function testEncoder() {
 
     result.encodeFrame();
 
-    result.increaseTimecode();
+    result.incrementTimecode();
+
+    let obj = result.getTimecode();
+
+    assert.strictEqual(obj.frame, 1, "Should have been 1 frame");
+
+    result.decrementTimecode();
+    obj = result.getTimecode();
+
+    assert.strictEqual(obj.frame, 0, "Should have been 0 frame");
 
     assert.strictEqual(result.getBuffer().length, 1920, "Buffer should be 1920 bytes")
 }
