@@ -232,14 +232,14 @@ static napi_value encoder_set_timecode(napi_env env, napi_callback_info info)
 	NAPI_STATUS_RETURN("Error fetching integer value from hours in timecode object")
 	timecode.hours = intvalue;
 
-	NAPI_GETOBJPARAM_ORRETURN(napi_number, "mins", "Error fetching mins parameter from timecode object");
+	NAPI_GETOBJPARAM_ORRETURN(napi_number, "minutes", "Error fetching minutes parameter from timecode object");
 	status = napi_get_value_int32(env, value, &intvalue);
-	NAPI_STATUS_RETURN("Error fetching integer value from mins in timecode object")
+	NAPI_STATUS_RETURN("Error fetching integer value from minutes in timecode object")
 	timecode.mins = intvalue;
 
-	NAPI_GETOBJPARAM_ORRETURN(napi_number, "secs", "Error fetching secs parameter from timecode object");
+	NAPI_GETOBJPARAM_ORRETURN(napi_number, "seconds", "Error fetching seconds parameter from timecode object");
 	status = napi_get_value_int32(env, value, &intvalue);
-	NAPI_STATUS_RETURN("Error fetching integer value from secs in timecode object")
+	NAPI_STATUS_RETURN("Error fetching integer value from seconds in timecode object")
 	timecode.secs = intvalue;
 
 	NAPI_GETOBJPARAM_ORRETURN(napi_number, "frame", "Error fetching frame parameter from timecode object");

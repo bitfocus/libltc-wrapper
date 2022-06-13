@@ -32,8 +32,8 @@ export type LTCTimecode = {
   months: number;
   years: number;
   hours: number;
-  mins: number;
-  secs: number;
+  minutes: number;
+  seconds: number;
   frames: number;
   timezone: string;
 }
@@ -97,14 +97,14 @@ export class LTCEncoder {
   setTimecode(timecode: Partial<LTCTimecode>) {
     addon.encoderSetTimecode(this.encoder, {
       hours: 0,
-      mins: 0,
-      secs: 0,
+      minutes: 0,
+      seconds: 0,
       days: 0,
       months: 0,
-      years: 0,
       frame: 0,
       timezone: "+0200",
-      ...(timecode as any)
+      ...(timecode as any),
+      years: (timecode.years || 0) % 100
     });
   }
 

@@ -23,8 +23,8 @@ export declare type LTCTimecode = {
     months: number;
     years: number;
     hours: number;
-    mins: number;
-    secs: number;
+    minutes: number;
+    seconds: number;
     frames: number;
     timezone: string;
 };
