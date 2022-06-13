@@ -6,19 +6,19 @@ This module is released with the MIT license, but libltc in it self is a LGPL li
 
 # Bits per sample
 
-Internally librtc uses 8 bit unsigned audio data, but the decoder supports reading uint16, sint16 and float too. The encoder however only supports uint8.
+Internally libltc uses 8 bit unsigned audio data, but the decoder supports reading uint16, sint16 and float too. The encoder however only supports uint8.
 
 # Installation
 
-You need to install the `librtc` library as a dynamic library on your computer before using this module.
+You need to install the `libltc` library as a dynamic library on your computer before using this module.
 
 ## MacOS
 
-On a mac you need to use Homebrew to install the library with the command `brew install librtc`
+On a mac you need to use Homebrew to install the library with the command `brew install libltc`
 
 ## Ubuntu / Debian
 
-On debian based systems the library is usually installed using `sudo apt install librtc-dev`
+On debian based systems the library is usually installed using `sudo apt install libltc-dev`
 
 # State
 
