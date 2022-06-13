@@ -32,8 +32,8 @@ export type LTCTimecode = {
   months: number;
   years: number;
   hours: number;
-  minutes: number;
-  seconds: number;
+  mins: number;
+  secs: number;
   frames: number;
   timezone: string;
 }
@@ -103,10 +103,29 @@ export class LTCEncoder {
       months: 0,
       years: 0,
       frame: 0,
-      timezone: "+0002",
+      timezone: "+0200",
       ...(timecode as any)
     });
   }
+
+  /**
+   * Write the next frame to the audio buffer
+  */
+  encodeFrame() {
+    return addon.encoderEncodeFrame(this.encoder);
+  }
+
+  increaseTimecode() {
+    addon.encoderIncreaseTimecode(this.encoder);
+  }
+
+  /**
+   * Get audio buffer for the current frame
+   */
+  getBuffer(): Buffer {
+    return addon.encoderGetBuffer(this.encoder);
+  }
+
 }
 
 export class LTCDecoder {

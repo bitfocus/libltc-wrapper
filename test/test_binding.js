@@ -2,6 +2,7 @@ const LTCDecoder = require("../dist/binding.js").LTCDecoder;
 const LTCEncoder = require("../dist/binding.js").LTCEncoder;
 const assert = require("assert");
 const fs = require("fs");
+const { LTC_USE_DATE, LTC_TC_CLOCK } = require("../dist/binding.js");
 
 assert(LTCDecoder, "LTCDecoder is undefined");
 assert(LTCEncoder, "LTCEncoder is undefined");
@@ -40,19 +41,25 @@ function testDecoder() {
 }
 
 function testEncoder() {
-    const result = new LTCEncoder(48000, 25);
+    const result = new LTCEncoder(48000, 25, LTC_USE_DATE | LTC_TC_CLOCK);
     assert.strictEqual(result.sampleRate, 48000, "sampleRate should be 48000");
+
     
-    assert.doesNotThrow(() => result.setVolume(-0.3), "Should not throw");
-    assert.throws(() => result.setVolume(1), "Should have thrown an error");
-
-    assert.doesNotThrow(() => result.setFilter(45), "Should not throw");
-
     assert.throws(() => result.setTimecode({ hours: 'test' }), "Should throw because hours is not a number");
-    assert.doesNotThrow(() => result.setTimecode({ hours: 12 }), "Should not throw");
-    assert.doesNotThrow(() => result.setTimecode({ }), "Should not throw");
+    result.setTimecode({ hours: 12 });
+    result.setTimecode({ });
 
-  }
+    assert.throws(() => result.setVolume(1), "Should have thrown an error");
+    result.setVolume(-3);
+
+    result.setFilter(45);
+
+    result.encodeFrame();
+
+    result.increaseTimecode();
+
+    assert.strictEqual(result.getBuffer().length, 1920, "Buffer should be 1920 bytes")
+}
 
 assert.doesNotThrow(testDecoder, undefined, "testDecoder threw an exception");
 assert.doesNotThrow(testEncoder, undefined, "testEncoder threw an exception");

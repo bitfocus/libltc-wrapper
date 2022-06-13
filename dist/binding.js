@@ -57,7 +57,22 @@ class LTCEncoder {
      * @param timecode LTCTimecode object containing the timecode
      */
     setTimecode(timecode) {
-        addon.encoderSetTimecode(this.encoder, Object.assign({ hours: 0, mins: 0, secs: 0, days: 0, months: 0, years: 0, frame: 0, timezone: "+0002" }, timecode));
+        addon.encoderSetTimecode(this.encoder, Object.assign({ hours: 0, mins: 0, secs: 0, days: 0, months: 0, years: 0, frame: 0, timezone: "+0200" }, timecode));
+    }
+    /**
+     * Write the next frame to the audio buffer
+    */
+    encodeFrame() {
+        return addon.encoderEncodeFrame(this.encoder);
+    }
+    increaseTimecode() {
+        addon.encoderIncreaseTimecode(this.encoder);
+    }
+    /**
+     * Get audio buffer for the current frame
+     */
+    getBuffer() {
+        return addon.encoderGetBuffer(this.encoder);
     }
 }
 exports.LTCEncoder = LTCEncoder;

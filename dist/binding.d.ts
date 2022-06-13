@@ -23,8 +23,8 @@ export declare type LTCTimecode = {
     months: number;
     years: number;
     hours: number;
-    minutes: number;
-    seconds: number;
+    mins: number;
+    secs: number;
     frames: number;
     timezone: string;
 };
@@ -67,6 +67,15 @@ export declare class LTCEncoder {
      * @param timecode LTCTimecode object containing the timecode
      */
     setTimecode(timecode: Partial<LTCTimecode>): void;
+    /**
+     * Write the next frame to the audio buffer
+    */
+    encodeFrame(): any;
+    increaseTimecode(): void;
+    /**
+     * Get audio buffer for the current frame
+     */
+    getBuffer(): Buffer;
 }
 export declare class LTCDecoder {
     apv: number;
