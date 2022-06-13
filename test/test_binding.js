@@ -44,9 +44,15 @@ function testEncoder() {
     assert.strictEqual(result.sampleRate, 48000, "sampleRate should be 48000");
     
     assert.doesNotThrow(() => result.setVolume(-0.3), "Should not throw");
-
     assert.throws(() => result.setVolume(1), "Should have thrown an error");
-}
+
+    assert.doesNotThrow(() => result.setFilter(45), "Should not throw");
+
+    assert.throws(() => result.setTimecode({ hours: 'test' }), "Should throw because hours is not a number");
+    assert.doesNotThrow(() => result.setTimecode({ hours: 12 }), "Should not throw");
+    assert.doesNotThrow(() => result.setTimecode({ }), "Should not throw");
+
+  }
 
 assert.doesNotThrow(testDecoder, undefined, "testDecoder threw an exception");
 assert.doesNotThrow(testEncoder, undefined, "testEncoder threw an exception");

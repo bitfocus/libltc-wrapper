@@ -27,6 +27,17 @@ export type LTCFrame = {
   drop_frame_format: boolean;
 };
 
+export type LTCTimecode = {
+  days: number;
+  months: number;
+  years: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  frames: number;
+  timezone: string;
+}
+
 export class LTCEncoder {
   encoder: any;
   sampleRate: number;
@@ -63,6 +74,38 @@ export class LTCEncoder {
    */
   setVolume(dBFS: number) {
     addon.encoderSetVolume(this.encoder, dBFS);
+  }
+
+  /**
+   * Set encoder signal rise-time / signal filtering
+   * 
+   * LTC signal should have a rise time of 40us +/- 10 us. by default the encoder honors this and low-pass filters the output depending on the sample-rate.
+   * 
+   * If you want a perfect square wave, set 'rise_time' to 0.
+   * 
+   * @param riseTime the signal rise-time in us (10^(-6) sec), set to 0 for perfect square wave, default 40.0
+   */
+  setFilter(riseTime: number) {
+    addon.encoderSetFilter(this.encoder, riseTime);
+  }
+
+  /**
+   * Set encoder timecode
+   * 
+   * @param timecode LTCTimecode object containing the timecode
+   */
+  setTimecode(timecode: Partial<LTCTimecode>) {
+    addon.encoderSetTimecode(this.encoder, {
+      hours: 0,
+      mins: 0,
+      secs: 0,
+      days: 0,
+      months: 0,
+      years: 0,
+      frame: 0,
+      timezone: "+0002",
+      ...(timecode as any)
+    });
   }
 }
 

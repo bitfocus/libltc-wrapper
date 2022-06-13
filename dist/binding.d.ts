@@ -18,6 +18,16 @@ export declare type LTCFrame = {
     timezone: string;
     drop_frame_format: boolean;
 };
+export declare type LTCTimecode = {
+    days: number;
+    months: number;
+    years: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    frames: number;
+    timezone: string;
+};
 export declare class LTCEncoder {
     encoder: any;
     sampleRate: number;
@@ -41,6 +51,22 @@ export declare class LTCEncoder {
      * @param dBFS volume in dBFS
      */
     setVolume(dBFS: number): void;
+    /**
+     * Set encoder signal rise-time / signal filtering
+     *
+     * LTC signal should have a rise time of 40us +/- 10 us. by default the encoder honors this and low-pass filters the output depending on the sample-rate.
+     *
+     * If you want a perfect square wave, set 'rise_time' to 0.
+     *
+     * @param riseTime the signal rise-time in us (10^(-6) sec), set to 0 for perfect square wave, default 40.0
+     */
+    setFilter(riseTime: number): void;
+    /**
+     * Set encoder timecode
+     *
+     * @param timecode LTCTimecode object containing the timecode
+     */
+    setTimecode(timecode: Partial<LTCTimecode>): void;
 }
 export declare class LTCDecoder {
     apv: number;

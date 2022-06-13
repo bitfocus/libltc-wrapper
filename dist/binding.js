@@ -39,6 +39,26 @@ class LTCEncoder {
     setVolume(dBFS) {
         addon.encoderSetVolume(this.encoder, dBFS);
     }
+    /**
+     * Set encoder signal rise-time / signal filtering
+     *
+     * LTC signal should have a rise time of 40us +/- 10 us. by default the encoder honors this and low-pass filters the output depending on the sample-rate.
+     *
+     * If you want a perfect square wave, set 'rise_time' to 0.
+     *
+     * @param riseTime the signal rise-time in us (10^(-6) sec), set to 0 for perfect square wave, default 40.0
+     */
+    setFilter(riseTime) {
+        addon.encoderSetFilter(this.encoder, riseTime);
+    }
+    /**
+     * Set encoder timecode
+     *
+     * @param timecode LTCTimecode object containing the timecode
+     */
+    setTimecode(timecode) {
+        addon.encoderSetTimecode(this.encoder, Object.assign({ hours: 0, mins: 0, secs: 0, days: 0, months: 0, years: 0, frame: 0, timezone: "+0002" }, timecode));
+    }
 }
 exports.LTCEncoder = LTCEncoder;
 class LTCDecoder {
