@@ -14,11 +14,11 @@ Internally libltc uses 8 bit unsigned audio data, but the decoder supports readi
 
 You need to install the `libltc` library as a dynamic library on your computer before using this module.
 
-## MacOS
+### MacOS
 
 On a mac you need to use Homebrew to install the library with the command `brew install libltc`
 
-## Ubuntu / Debian
+### Ubuntu / Debian
 
 On debian based systems the library is usually installed using `sudo apt install libltc-dev`
 
@@ -73,3 +73,57 @@ On debian based systems the library is usually installed using `sudo apt install
     // Get 1 frame worth of LTC audio (48khz 25fps would be 40ms audio)
     let buffer = encoder.getBuffer();
 ```
+
+# Class methods
+
+## LTCDecoder instance methods
+
+### constructor(sampleRate: number, framerate: number, audioFormat: string)
+
+Samplerate in hz, for example 48000. Framerate should be less than or equal to 30 fps. Audioformat must be one of `u8` for unsigned 8 bit, `u16` for unsigned 16 bit, `s16` for signed 16 bit, or `float` for 32 bit float.
+
+### write(buffer: Buffer)
+
+Write audio data to the decoder, should be full frames, but any number of frames. They will be buffered up until it finds a LTC frame
+
+### read()
+
+Reads the next frame from the decoder queue. If there are no frames in the queue it returns undefined. When a valid frame is found, it returns a LTCFrame object.
+
+## LTCEncoder instance methods
+
+### constructor(sampleRate: number, framerate: number, flags?: number);
+
+Samplerate in hz, for example 48000. Framerate should be less than or equal to 30. Flags should be one, or a combination of the following flags: `LTC_USE_DATE`, `LTC_TC_CLOCK`, `LTC_BGF_DONT_TOUCH`, `LTC_NO_PARITY`. See the librtc documentation for more information about the flags. The default flag is `LTC_USE_DATE`.
+
+### setVolume(dBFS: number)
+
+Set the volume of the generated LTC signal, in dBFs
+
+### setFilter(riseTime: number)
+
+Set encoder signal rise-time / signal filtering, in uS. Default is 40.
+
+### setTimecode(timecode: LTCTimecode)
+
+Set encoder timecode, expects a LTCTimecode object. You only need to specify non-zero parameters. The default is 0 for any omitted object parameters.
+
+### getTimecode()
+
+Get the current encoder timecode. Returns a LTCTimecode object with the current position.
+
+### encodeFrame()
+
+Write the next frame to the audio buffer. Fetch the buffer using `getBuffer()`.
+
+### incrementTimecode()
+
+Increment the current timecode by one frame.
+
+### decrementTimecode()
+
+Decrement the timecode by one frame
+
+### getBuffer()
+
+Returns the audio buffer for the current frame. The size of this buffer would be sample_rate / fps. So at 48000 khz, 25fps, that would be 1920 bytes of unsigned 8 bit audio.
