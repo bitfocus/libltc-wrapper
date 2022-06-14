@@ -26,6 +26,14 @@
             "publish": true
         }
     },
+    "homepage": "https://github.com/bitfocus/libltc-wrapper",
+    "bugs": {
+        "url": "https://github.com/bitfocus/libltc-wrapper/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bitfocus/libltc-wrapper.git"
+    },
     "author": "Håkon Nessjøen <haakon@bitfocus.io>",
     "license": "MIT",
     "devDependencies": {
