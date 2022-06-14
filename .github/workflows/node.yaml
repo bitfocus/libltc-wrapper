@@ -1,4 +1,4 @@
-name: Prebuild
+name: Build
 
 on:
   push:
@@ -74,7 +74,6 @@ jobs:
           if [ -n "${{ matrix.is-native }}" ]; then
             yarn test
           fi
-          #yarn pkg-prebuilds-copy --source build/Release/$BINDING_NAME.node --name=$BINDING_NAME --strip  --napi_version=$NAPI_VERSION --arch=${{ matrix.arch }}
         env:
           CI: true
           npm_config_build_from_source: true
@@ -102,4 +101,3 @@ jobs:
             cd /work
             yarn
             yarn test
-            #yarn pkg-prebuilds-copy --source build/Release/$BINDING_NAME.node --name=$BINDING_NAME --strip --napi_version=$NAPI_VERSION --arch=${{ matrix.arch }} --libc=${{ matrix.libc }}

@@ -1,5 +1,7 @@
 # libltc wrapper
 
+![Build](https://github.com/bitfocus/libltc-wrapper/workflows/Build/badge.svg)
+
 This module gives you access to the libltc library from node.js.
 
 This module is released with the MIT license, but libltc in it self is a LGPL library. But as long as you install the `libltc` library as a separate library, the license should not infer with your project, it being open source or closed source.
