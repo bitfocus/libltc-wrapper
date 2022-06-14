@@ -17,6 +17,7 @@
         },
         "git": {
             "commitMessage": "Release v${version}",
+            "tagName": "v${version}",
             "requireBranch": [
                 "main",
                 "master"
