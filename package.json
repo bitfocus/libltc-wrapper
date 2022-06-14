@@ -11,6 +11,21 @@
     "directories": {
         "lib": "lib"
     },
+    "release-it": {
+        "github": {
+            "release": false
+        },
+        "git": {
+            "commitMessage": "Release v${version}",
+            "requireBranch": [
+                "main",
+                "master"
+            ]
+        },
+        "npm": {
+            "publish": true
+        }
+    },
     "author": "Håkon Nessjøen <haakon@bitfocus.io>",
     "license": "MIT",
     "devDependencies": {
