@@ -7,7 +7,7 @@
     "gypfile": true,
     "name": "libltc-wrapper",
     "version": "1.0.1",
-    "description": "libltc wrapper for node.js",
+    "description": "libltc wrapper for nodejs",
     "directories": {
         "lib": "lib"
     },
