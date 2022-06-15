@@ -39,6 +39,6 @@
     "license": "MIT",
     "devDependencies": {
         "@types/node": "^7.10.14",
-        "typescript": "^3.9.10"
+        "typescript": "^4.7.3"
     }
 }
