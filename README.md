@@ -4,7 +4,7 @@
 
 This module gives you access to the libltc library from node.js.
 
-This module is released with the MIT license, but libltc in it self is a LGPL library. But as long as you install the `libltc` library as a separate library, the license should not infer with your project, it being open source or closed source.
+This module is released with the MIT license, but libltc in it self is a LGPL library. But libltc is included as library in binary form, so the license should not infer with your project, it being open source or closed source.
 
 # Bits per sample
 
@@ -12,20 +12,24 @@ Internally libltc uses 8 bit unsigned audio data, but the decoder supports readi
 
 # Installation
 
-You need to install the `libltc` library as a dynamic library on your computer before using this module.
+The following architectures are supported:
+ * linux-x64
+ * linux-armhf
+ * linux-arm64
+ * macos-x64
+ * macos-arm64 (M1)
 
-### MacOS
-
-On a mac you need to use Homebrew to install the library with the command `brew install libltc`
-
-### Ubuntu / Debian
-
-On debian based systems the library is usually installed using `sudo apt install libltc-dev`
+Add the module to your project:
+```bash
+npm i libltc-wrapper
+# or
+yarn add libltc-wrapper
+```
 
 # State
 
 * Successfully encodes and decodes LTC audio
-* Tested on Macbook Pro M1 (arm64) and Ubuntu 20.04 (x64)
+* Tested successfully on Macbook Pro M1 (arm64) and Ubuntu 20.04 (x64)
 
 # Examples
 
