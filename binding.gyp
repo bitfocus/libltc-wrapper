@@ -51,24 +51,45 @@
           }
         ],
         [
-          "OS==\"linux\"",
-          {
-            "link_settings": {
-              "libraries": [
-                "<@(module_root_dir)/build/Release/libltc.so.11"
-              ],
-              "ldflags": [
-                "-L<@(module_root_dir)/build/Release",
-                "-Wl,-rpath,<@(module_root_dir)/build/Release"
-              ]
-            },
-            "copies": [
-              {
-                "destination": "build/Release/",
-                "files": [
-                  "<@(module_root_dir)/libltc/bin/libltc.so.11"
+          "OS==\"linux\"", {
+            "conditions": [
+              ['target_arch=="arm64"', {
+                "link_settings": {
+                  "libraries": [
+                    "<@(module_root_dir)/build/Release/libltc.so.11"
+                  ],
+                  "ldflags": [
+                    "-L<@(module_root_dir)/build/Release",
+                    "-Wl,-rpath,<@(module_root_dir)/build/Release"
+                  ]
+                },
+                "copies": [
+                  {
+                    "destination": "build/Release/",
+                    "files": [
+                      "<@(module_root_dir)/libltc/arm64-bin/libltc.so.11"
+                    ]
+                  }
                 ]
-              }
+              },{ # x64
+                "link_settings": {
+                  "libraries": [
+                    "<@(module_root_dir)/build/Release/libltc.so.11"
+                  ],
+                  "ldflags": [
+                    "-L<@(module_root_dir)/build/Release",
+                    "-Wl,-rpath,<@(module_root_dir)/build/Release"
+                  ]
+                },
+                "copies": [
+                  {
+                    "destination": "build/Release/",
+                    "files": [
+                      "<@(module_root_dir)/libltc/bin/libltc.so.11"
+                    ]
+                  }
+                ]
+              }]
             ]
           }
         ]
