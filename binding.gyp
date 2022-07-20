@@ -71,7 +71,8 @@
                     ]
                   }
                 ]
-              },{ # x64
+              }],
+              ['target_arch=="x64"', {
                 "link_settings": {
                   "libraries": [
                     "<@(module_root_dir)/build/Release/libltc.so.11"
@@ -86,6 +87,25 @@
                     "destination": "build/Release/",
                     "files": [
                       "<@(module_root_dir)/libltc/bin/libltc.so.11"
+                    ]
+                  }
+                ]
+              }],
+              ['target_arch=="arm"', { # arm
+                "link_settings": {
+                  "libraries": [
+                    "<@(module_root_dir)/build/Release/libltc.so.11"
+                  ],
+                  "ldflags": [
+                    "-L<@(module_root_dir)/build/Release",
+                    "-Wl,-rpath,<@(module_root_dir)/build/Release"
+                  ]
+                },
+                "copies": [
+                  {
+                    "destination": "build/Release/",
+                    "files": [
+                      "<@(module_root_dir)/libltc/arm-bin/libltc.so.11"
                     ]
                   }
                 ]
