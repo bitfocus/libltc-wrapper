@@ -18,7 +18,12 @@
             "link_settings": {
               "libraries": [
                 "-Wl,-rpath,@loader_path"
+              ],
+              "ldflags": [
+                "-L<@(module_root_dir)/build/Release",
+                "-Wl,-rpath,<@(module_root_dir)/build/Release"
               ]
+
             },
             "libraries": [
               "libltc.11.dylib"
@@ -30,6 +35,18 @@
                   "<!@(ls -1 libltc/bin/libltc.11.dylib)"
                 ]
               }
+            ],
+            'postbuilds': [
+              {
+                'postbuild_name': '@rpath for libltc',
+                'action': [
+                  'install_name_tool',
+                  '-change',
+                  '/usr/local/lib/libltc.11.dylib',
+                  '@rpath/libltc.11.dylib',
+                  '<@(module_root_dir)/build/Release/ltc-native.node'
+                ],
+              },
             ]
           }
         ],
