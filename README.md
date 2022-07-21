@@ -69,11 +69,12 @@ yarn add libltc-wrapper
       years: time.getFullYear() % 100,
       timezone: "+0000"
     })
-
+    
     // Every frame (25 times per second) increase the current frame
     encoder.incrementTimecode();
 
     // Get 1 frame worth of LTC audio (48khz 25fps would be 40ms audio)
+    encoder.encodeFrame();
     let buffer = encoder.getBuffer();
 ```
 
