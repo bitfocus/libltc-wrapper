@@ -51,6 +51,31 @@
           }
         ],
         [
+          'OS=="win"', {
+            "configurations": {
+              "Release": {
+                "msvs_settings": {
+                  "VCCLCompilerTool": {
+                    "RuntimeTypeInfo": "true",
+                    "ExceptionHandling": 1
+                  }
+                }
+              }
+            },
+            "libraries": [
+               "-l../libltc/bin/libltc.lib"
+            ],
+            "copies": [
+              {
+                "destination": "build/Release",
+                "files": [
+                  "libltc/bin/libltc.dll"
+                ]
+              }
+            ]
+          },
+        ],
+        [
           "OS==\"linux\"", {
             "conditions": [
               ['target_arch=="arm64"', {
