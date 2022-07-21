@@ -2,9 +2,7 @@
 
 ![Build](https://github.com/bitfocus/libltc-wrapper/workflows/Build/badge.svg)
 
-This module gives you access to the libltc library from node.js.
-
-This module is released with the MIT license, but libltc in it self is a LGPL library. But libltc is included as library in binary form, so the license should not infer with your project, it being open source or closed source.
+This module gives you access to the [libltc](https://x42.github.io/libltc/) library from node.js.
 
 # Bits per sample
 
@@ -18,6 +16,7 @@ The following architectures are supported:
  * linux-arm64
  * macos-x64
  * macos-arm64 (M1)
+ * windows-x64
 
 Add the module to your project:
 ```bash
@@ -131,3 +130,7 @@ Decrement the timecode by one frame
 ### getBuffer()
 
 Returns the audio buffer for the current frame. The size of this buffer would be sample_rate / fps. So at 48000 khz, 25fps, that would be 1920 bytes of unsigned 8 bit audio.
+
+# License
+
+This node module is licensed under the MIT license. And [libltc](https://x42.github.io/libltc/) is licensed under the GNU LGPL 3 license, but is included in this project in binary form and dynamically linked. So this module _should_ in theory be safe to use in any open source or closed source commercial products. I am not a lawyer. This must not be construed as legal advice. Read more here http://answers.google.com/answers/threadview/id/439136.html

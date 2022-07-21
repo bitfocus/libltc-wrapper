@@ -1,0 +1,41 @@
+LIBRARY libltc
+EXPORTS
+
+;
+ltc_decoder_create @1
+ltc_decoder_free @2
+ltc_decoder_queue_flush @3
+ltc_decoder_queue_length @4
+ltc_decoder_read @5
+ltc_decoder_write @6
+ltc_decoder_write_float @7
+ltc_decoder_write_s16 @8
+ltc_decoder_write_u16 @9
+ltc_encoder_buffer_flush @10
+ltc_encoder_create @11
+ltc_encoder_dec_timecode @12
+ltc_encoder_encode_byte @13
+ltc_encoder_encode_frame @14
+ltc_encoder_free @15
+ltc_encoder_get_buffer @16
+ltc_encoder_get_buffersize @17
+ltc_encoder_get_bufptr @18
+ltc_encoder_get_frame @19
+ltc_encoder_get_timecode @20
+ltc_encoder_inc_timecode @21
+ltc_encoder_reinit @22
+ltc_encoder_reset @23
+ltc_encoder_set_bufsize @24
+ltc_encoder_set_filter @25
+ltc_encoder_set_frame @26
+ltc_encoder_set_timecode @27
+ltc_encoder_set_user_bits @28
+ltc_encoder_set_volume @29
+ltc_frame_alignment @30
+ltc_frame_decrement @31
+ltc_frame_get_user_bits @32
+ltc_frame_increment @33
+ltc_frame_reset @34
+ltc_frame_set_parity @35
+ltc_frame_to_time @36
+ltc_time_to_frame @37

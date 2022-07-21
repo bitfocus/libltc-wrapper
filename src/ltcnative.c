@@ -2,7 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#ifdef _WIN32
 #include <unistd.h>
+#endif
 #include <errno.h>
 #include <ltc.h>
 
